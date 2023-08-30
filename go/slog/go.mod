@@ -1,8 +1,9 @@
-module github.com/ymotongpoo/cloud-logging-configurations/go/slog
+module github.com/muncus/cloud-logging-configurations/go/slog
 
 go 1.21
 
 require (
+	cloud.google.com/go/compute/metadata v0.2.3
 	github.com/GoogleCloudPlatform/opentelemetry-operations-go/exporter/trace v1.19.1
 	go.opentelemetry.io/contrib/detectors/gcp v1.17.0
 	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.43.0
@@ -15,9 +16,10 @@ require (
 // override detectors, as they use the 1.18 semconv.SchemaURL, and cannot be merged with 1.17 resources.
 replace github.com/GoogleCloudPlatform/opentelemetry-operations-go/detectors/gcp => github.com/GoogleCloudPlatform/opentelemetry-operations-go/detectors/gcp v1.17.0
 
+replace github.com/muncus/cloud-logging-configurations/go/slog/gcploghandler => ./gcploghandler
+
 require (
 	cloud.google.com/go/compute v1.23.0 // indirect
-	cloud.google.com/go/compute/metadata v0.2.3 // indirect
 	cloud.google.com/go/trace v1.10.1 // indirect
 	github.com/GoogleCloudPlatform/opentelemetry-operations-go/detectors/gcp v1.18.0 // indirect
 	github.com/GoogleCloudPlatform/opentelemetry-operations-go/internal/resourcemapping v0.43.1 // indirect

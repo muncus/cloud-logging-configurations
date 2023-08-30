@@ -76,12 +76,17 @@ func TestSeverityAttr(t *testing.T) {
 
 }
 
+type SourceLocation struct {
+	File string
+	Line int
+}
 type JSONLogEntry struct {
 	Severity     string
 	Message      string
-	TraceID      string `json:"logging.googleapis.com/trace"`
-	SpanID       string `json:"logging.googleapis.com/spanId"`
-	TraceSampled bool   `json:"logging.googleapis.com/trace_sampled"`
+	TraceID      string         `json:"logging.googleapis.com/trace"`
+	SpanID       string         `json:"logging.googleapis.com/spanId"`
+	TraceSampled bool           `json:"logging.googleapis.com/trace_sampled"`
+	SourceLoc    SourceLocation `json:"logging.googleapis.com/sourceLocation"`
 }
 
 func TestAttrRewrite(t *testing.T) {
@@ -195,5 +200,26 @@ func TestOtelWithoutProjectId(t *testing.T) {
 	}
 	if entry.SpanID != "" {
 		t.Errorf("TestOtelWithoutProjectId: want empty SpanID, got %s", entry.SpanID)
+	}
+}
+
+func TestSourceLocation(t *testing.T) {
+	buf := new(bytes.Buffer)
+	l := slog.New(New(buf, &Options{
+		HandlerOptions: slog.HandlerOptions{
+			AddSource: true,
+		},
+	}))
+	l.Log(context.Background(), LevelInfo.Level(), "my-message")
+	entry := &JSONLogEntry{}
+	err := json.Unmarshal(buf.Bytes(), entry)
+	if err != nil {
+		t.Fatalf("failed to parse json output: %v", err)
+	}
+	if !strings.Contains(entry.SourceLoc.File, "handler_test.go") {
+		t.Errorf("TestSourceLocation: expected path containing 'handler_test.go', got %s", entry.SourceLoc.File)
+	}
+	if entry.SourceLoc.Line <= 0 {
+		t.Errorf("TestSourceLocation: want non-zero line number, got %d", entry.SourceLoc.Line)
 	}
 }

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"log/slog"
+	"strings"
 	"time"
 
 	"go.opentelemetry.io/otel/trace"
@@ -13,6 +14,7 @@ import (
 const TraceIdKey = "logging.googleapis.com/trace"
 const SpanIdKey = "logging.googleapis.com/spanId"
 const TraceSampledKey = "logging.googleapis.com/trace_sampled"
+const SourceLocationKey = "logging.googleapis.com/sourceLocation"
 
 type Options struct {
 	slog.HandlerOptions
@@ -77,6 +79,11 @@ func rewriteAttrs(groups []string, a slog.Attr) slog.Attr {
 		a.Key = "message"
 	case slog.TimeKey:
 		a.Value = slog.StringValue(a.Value.Time().Format(time.RFC3339))
+	case slog.SourceKey:
+		a.Key = SourceLocationKey
+		if f, l, ok := strings.Cut(a.Value.String(), ":"); ok {
+			a.Value = slog.AnyValue(map[string]string{"file": f, "line": l})
+		}
 	}
 	return a
 
